@@ -1,0 +1,67 @@
+<h1 class="text-center">Login</h1>
+<form method="post" id="loginForm" class="p-5">
+  <div class="form-group">
+    <label for="des">Email</label>
+    <input name="email" type="email" class="form-control" id="email" required aria-describedby="emailHelp" placeholder="Enter your email" />
+  </div>
+
+  <div class="form-group">
+    <label for="price">Password</label>
+    <input required type="text" name="password" class="form-control" id="password" aria-describedby="emailHelp" placeholder="Enter your password" />
+  </div>
+  <button type="submit" class="btn btn-primary mt-2">Login</button>
+</form>
+<div class="text-center mt-3">
+  <p>
+    If you haven't registered yet,
+    <a href="/api/issue-tracker/user/signup">click here</a> to signup.
+  </p>
+</div>
+<script>
+  const loginForm = document.getElementById("loginForm");
+  if (loginForm) {
+    loginForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      login(email, password);
+    });
+  }
+
+  const login = async (email, password) => {
+    try {
+      const reqBody = {
+        email: email,
+        password: password,
+      };
+      const options = {
+        method: "POST",
+        headers: {
+          Accept: "application/json, text/plain, */*",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reqBody),
+      };
+      const url = `/api/issue-tracker/user/login`;
+      const response = await fetch(url, options);
+      const res = await response.json();
+      if (res.success === true) {
+        Swal.fire({
+          title: "Login successful!",
+          icon: "success",
+        }).then(() => {
+          location.assign("/");
+        })
+      } else {
+        location.reload();
+      }
+    } catch (err) {
+      Swal.fire({
+        title: "Error!",
+        text: err.message,
+        icon: "error",
+        confirmButtonText: "Ok",
+      });
+    }
+  };
+</script>

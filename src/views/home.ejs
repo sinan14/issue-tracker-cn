@@ -1,0 +1,16 @@
+<div class="d-flex flex-column min-vh-80">
+  <div class="container text-center my-auto">
+    <div class="header mb-4 mt-5">
+      <h1>Welcome to the Issue Tracker</h1>
+    </div>
+    <div class="content mb-5">
+      <p class="lead">Track your project's issues and collaborate effectively with your team.</p>
+    </div>
+  </div>
+  <button class="btn btn-primary explore-button" onclick="redirectToProjects()">Explore Projects</button>
+</div>
+<script>
+  const redirectToProjects = () => {
+    location.assign('/api/issue-tracker/project/all-projects')
+  }
+</script>

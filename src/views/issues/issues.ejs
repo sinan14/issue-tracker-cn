@@ -1,0 +1,37 @@
+<div class="mt-5 container">
+  <% if (issues.length > 0) { %>
+
+  <h1 class="text-center mb-5">List of issues</h1>
+
+  <ul class="list-group">
+    <% issues.forEach(issue => { %>
+    <li class="list-group-item mb-3">
+      <h3 class="mb-3 mt-2"><%= issue.title %></h3>
+      <% if (issue.labels.length) { %>
+      <p>Labels: <%= issue.labels.join(',') %></p>
+
+      <% } %>
+      <p>Status: <%= issue.status %></p>
+      <p class="card-text">
+        Created by: <%= issue.author?._id == locals.userId
+          ?'You':issue.author?.name %>
+      </p>
+      <p><%= issue.description %></p>
+      <button type="button" class="btn btn-primary mb-3">
+        <a href="/api/issue-tracker/issues/<%= projectId %>/<%= issue._id %>/get-issue-details" style="color: #fff; text-decoration: none">View details</a>
+      </button>
+    </li>
+    <% }) %>
+  </ul>
+  <% } else { %>
+
+  <div class="empty-screen text-center">
+    <h1>No issues to display</h1>
+  </div>
+  <div class="text-center mt-2">
+    <a href="/api/issue-tracker/issues/<%= projectId %>/get-create-issue" class="btn btn-primary">
+      New issue
+    </a>
+  </div>
+  <% } %>
+</div>

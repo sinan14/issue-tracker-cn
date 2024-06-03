@@ -1,0 +1,255 @@
+<div class="row mt-5">
+  <div class="col-md-8 offset-md-2">
+    <div class="card">
+      <div class="card-body">
+        <h2 class="card-title"><%= project.name %></h2>
+        <div style="background-color: #ebe9e8;">
+          <p><%= project.description %></p>
+        </div>
+        <p class="card-text">
+          Created by: <%= project.author?._id == locals.userId
+          ?'You':project.author?.name %>
+        </p>
+
+        <% if (project.author?._id == locals.userId) { %>
+        <div class="project-control-btns mt-2 mb-2">
+          <a href="/api/issue-tracker/project/<%= project._id %>/edit-project" class="text-decoration-none text-black btn btn-warning">Edit</a>
+          <button onclick="deleteProject('<%= project._id %>')" class="btn btn-danger">
+            Delete
+          </button>
+        </div>
+        <% } %>
+        <div>
+          <button type="button" class="btn btn-primary mb-3">
+            <a href="/api/issue-tracker/issues/<%= project._id %>/get-issues" style="color: #fff; text-decoration: none">Issues</a>
+          </button>
+          <button type="button" class="btn btn-primary mb-3">
+            <a href="/api/issue-tracker/issues/<%= project._id %>/get-create-issue" style="color: #fff; text-decoration: none">New issue</a>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<input type="hidden" name="inp-projectId" id="inp-projectId" value="<%= project._id %>" />
+<div class="issue-section row mt-5">
+  <div class="col-md-8 offset-md-2 container">
+    <form method="post" id="searchForm" class="p-5">
+      <h2>Filter the issues</h2>
+      <div class="form-group">
+        <label for="searchByNameAndDesInp">filter by title/description</label>
+        <input name="searchByNameAndDesInp" type="search" class="form-control" id="searchByNameAndDesInp" placeholder="title or description" />
+      </div>
+
+      <div class="form-group">
+        <label for="searchByLabel">filter by labels</label>
+        <input type="text" name="searchByLabel" class="form-control" id="searchByLabel" placeholder="add multiple labels separated by commas" />
+      </div>
+      <div class="form-group">
+        <label for="searchByAuthor">filter by author</label>
+        <input type="text" name="searchByAuthor" class="form-control" id="searchByAuthor" placeholder="author" />
+      </div>
+      <button type="submit" class="btn btn-primary mt-2">Search</button>
+    </form>
+    <% if (issues.length > 0) { %>
+
+    <h1 class="text-center mb-3">Issues</h1>
+
+    <ul id="issues-list" class="list-group conta">
+      <% issues.forEach(issue => { %>
+      <li class="list-group-item mb-5">
+        <h3 class="text-center mb-3 mt-3"><%= issue.title %></h3>
+        <div>
+          <h6>Issue description : </h6>
+          <div style="background-color: #ebe9e8;">
+            <p><%= issue.description %></p>
+          </div>
+        </div>
+        <% if (issue.labels.length) { %>
+        <p>Labels: <%= issue.labels.join(',') %></p>
+
+        <% } %>
+        <p>Status: <%= issue.status %></p>
+        <p>
+          Created by: <%= issue.author?._id == locals.userId
+          ?'You':issue.author?.name %>
+        </p>
+        <button type="button" class="btn btn-primary mb-3">
+          <a href="/api/issue-tracker/issues/<%= projectId %>/<%= issue._id %>/get-issue-details" style="color: #fff; text-decoration: none">More details</a>
+        </button>
+      </li>
+      <% }) %>
+    </ul>
+    <% } else { %>
+
+    <div class="empty-screen text-center">
+      <h1>No issues to display</h1>
+    </div>
+
+    <% } %>
+  </div>
+</div>
+<input type="hidden" id="projectId" value="<%= project._id %>" />
+<input type="hidden" id="userId" value="<%= locals.userId %>" />
+<script>
+  const issueList = document.getElementById("issues-list")
+  const searchForm = document.getElementById("searchForm");
+
+  function toggleTheSearchForm() {
+    const displayStyle = searchForm.style.display;
+    if (displayStyle == "none") {
+      displayStyle = "block"
+    } else {
+      displayStyle = "none"
+    }
+  }
+  if (searchForm) {
+    searchForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const titleOrDes = document.getElementById("searchByNameAndDesInp").value;
+      const author = document.getElementById("searchByAuthor").value;
+      const labelInpValue = document.getElementById("searchByLabel").value;
+      const labels = labelInpValue ? labelInpValue.split(",") : [];
+      searchIssues(titleOrDes, labels, author);
+    });
+  }
+  async function searchIssues(titleOrDes, labels, author) {
+    try {
+      console.log('search val ', titleOrDes, labels, author);
+      // return
+      const projectId = document.getElementById("projectId").value;
+      const url = `/api/issue-tracker/issues/${projectId}/filter-issues`;
+      let queryString = '?';
+      if (author.trim()) {
+        queryString += `author=${author.trim()}&`;
+      }
+      if (titleOrDes.trim()) {
+        queryString += `searchKeyword=${titleOrDes.trim()}&`;
+      }
+      if (Array.isArray(labels)) {
+        for (const label of labels) {
+          queryString += `labels[]=${label}&`
+        }
+      }
+
+      const options = {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      };
+
+
+      const response = await fetch(url + queryString, options);
+      const res = await response.json();
+      if (res.success === true) {
+        showFilteredIssues(res.issues, projectId);
+      } else {
+        Swal.fire({
+          title: "Error!",
+          text: res.error,
+          icon: "error",
+        });
+      }
+    } catch (err) {
+      console.log('crp ', err);
+      Swal.fire({
+        title: "Error!",
+        text: err.message,
+        icon: "error",
+        confirmButtonText: "Ok",
+      });
+    }
+  };
+
+  function showFilteredIssues(issues, projectId) {
+    const userId = document.getElementById("userId").value;
+
+    if (issues.length == 0) {
+      Swal.fire({
+        title: "Error!",
+        text: 'No issues found',
+        icon: "error",
+      });
+      issueList.innerHTML = 'No issue found based on your search';
+      return;
+    }
+    let innerhtml = '';
+    console.log('issues ==>', issues);
+    for (const issue of issues) {
+      const author = issue.author;
+      const createdBy = author?._id == userId ? 'You' : author?.name;
+      let labelText = '';
+      if (issue.labels.length > 0) {
+        labelText = `<p>Labels: ${issue.labels.join(',')}</p>`
+      }
+      innerhtml += `<li class="list-group-item mb-5">
+        <h3 class="text-center mb-3 mt-3">${issue.title}</h3>
+        <div>
+          <h6>Issue description : </h6>
+          <div style="background-color: #ebe9e8;">
+            <p>${issue.description}</p>
+          </div>
+        </div>
+        ${labelText?labelText:''}
+        
+        <p>Status: ${issue.status}</p>
+        <p>
+          Created by: ${createdBy}
+        </p>
+        <button type="button" class="btn btn-primary mb-3">
+          <a href="/api/issue-tracker/issues/${projectId}/${issue._id}/get-issue-details" style="color: #fff; text-decoration: none">More details</a>
+        </button>
+      </li>
+      `
+
+    }
+    issueList.innerHTML = innerhtml;
+  }
+
+  function viewIssues() {
+    const projectId = document.getElementById('inp-projectId').value;
+    if (projectId) {
+      location.assign(`/api/issue-tracker/issues/${projectId}/get-issues`);
+    }
+  }
+
+  async function deleteProject(projectId) {
+    try {
+      const options = {
+        method: "DELETE",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      };
+      const url = `/api/issue-tracker/project/${projectId}`;
+      const response = await fetch(url, options);
+      const res = await response.json();
+      if (res.success === true) {
+        Swal.fire({
+          title: "project deleted successfully!",
+          icon: "success",
+        }).then(() => {
+          location.assign("/");
+        })
+      } else {
+        Swal.fire({
+          title: "Error!",
+          text: res.error,
+          icon: "error",
+        });
+      }
+    } catch (err) {
+      console.log('crp ', err);
+      Swal.fire({
+        title: "Error!",
+        text: err.message,
+        icon: "error",
+      });
+    }
+
+  }
+</script>

@@ -1,0 +1,29 @@
+<div class="mt-5 container">
+  <button type="button" class="btn btn-primary mb-3">
+    <a href="/api/issue-tracker/project/create-project" style="color: #fff; text-decoration: none">New project</a>
+  </button>
+  <h2 class="text-center">List of Projects</h2>
+  <ul class="list-group">
+    <% projects.forEach(project => { %>
+    <li class="list-group-item mb-3">
+      <h4><%= project.name %></h4>
+      <div style="background-color: #ebe9e8;">
+        <p><%= project.description %></p>
+      </div>
+      <p class="card-text">
+        Created by: <%= project.author?._id == locals.userId
+          ?'You':project.author?.name %>
+      </p>
+
+      <button type="button" class="btn btn-primary mb-3">
+        <a href="/api/issue-tracker/project/<%= project._id %>/get-project-details" style="color: #fff; text-decoration: none">More details</a>
+      </button>
+    </li>
+    <% }) %>
+  </ul>
+</div>
+<script>
+  function viewProject(projectId) {
+    location.assign(`/api/issue-tracker/project/${projectId}/get-project-details`)
+  }
+</script>

@@ -1,0 +1,71 @@
+<h1 class="text-center mt-3">Update issue details</h1>
+<form id="issueForm">
+  <div class="mb-3">
+    <label for="issue_name" class="form-label">Issue title</label>
+    <input type="text" class="form-control" id="issue_name" value="<%= issue.title %>" required />
+  </div>
+  <div class="form-floating">
+    <textarea class="form-control" placeholder="Leave a comment here" id="issue_description" style="height: 100px" required>
+    <%= issue.description %>
+    </textarea>
+    <label for="issue_description">Description</label>
+  </div>
+  <input type="hidden" name="issue_id" id="issue_id" value="<%= issue._id %>" />
+  <input type="hidden" name="project_id" id="project_id" value="<%= projectId %>" />
+  <button type="submit" class="btn btn-primary mt-3">Submit</button>
+</form>
+<script>
+  const issueForm = document.getElementById("issueForm");
+  if (issueForm) {
+    issueForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const title = document.getElementById("issue_name").value;
+      const description = document.getElementById("issue_description").value;
+      const projectId = document.getElementById("project_id").value;
+      const id = document.getElementById("issue_id").value;
+      updateIssue(title, description, projectId, id);
+    });
+  }
+
+  async function updateIssue(title, description, projectId, issueId) {
+    try {
+      const reqBody = {
+        title,
+        description,
+      };
+      const options = {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(reqBody),
+      };
+      const url = `/api/issue-tracker/issues/${projectId}/${issueId}`;
+      const response = await fetch(url, options);
+      const res = await response.json();
+      if (res.success === true) {
+        Swal.fire({
+          title: "issue updated successfully!",
+          icon: "success",
+        }).then(() => {
+          location.assign(`${url}/get-issue-details`);
+        })
+      } else {
+        Swal.fire({
+          title: "Error!",
+          text: res.error,
+          icon: "error",
+        });
+      }
+    } catch (err) {
+      console.log('crp ', err);
+      Swal.fire({
+        title: "Error!",
+        text: err.message,
+        icon: "error",
+        confirmButtonText: "Ok",
+      });
+    }
+  };
+</script>
