@@ -3,29 +3,45 @@
   <div class="mb-3">
     <label for="issue_name" class="form-label">Issue title</label>
     <input type="text" class="form-control" id="issue_name" required />
-
   </div>
   <div class="form-floating">
-    <textarea class="form-control" placeholder="Leave a comment here" id="issue_description" style="height: 100px" required></textarea>
+    <textarea
+      class="form-control"
+      placeholder="Leave a comment here"
+      id="issue_description"
+      style="height: 100px"
+      required
+    ></textarea>
     <label for="issue_description">Description</label>
   </div>
   <div class="form-group">
     <label for="labelInput">Labels</label>
-    <input type="text" name="labelInput" class="form-control" id="labelInput" placeholder="add multiple labels separated by commas" />
+    <input
+      type="text"
+      name="labelInput"
+      class="form-control"
+      id="labelInput"
+      placeholder="add multiple labels separated by commas"
+    />
   </div>
-  <input type="hidden" name="project_id" id="project_id" value="<%= projectId %>" />
+  <input
+    type="hidden"
+    name="project_id"
+    id="project_id"
+    value="<%= projectId %>"
+  />
   <button type="submit" class="btn btn-primary mt-3">Submit</button>
 </form>
 <script>
-  const issueForm = document.getElementById("issueForm");
+  const issueForm = document.getElementById('issueForm');
   if (issueForm) {
-    issueForm.addEventListener("submit", (e) => {
+    issueForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      const title = document.getElementById("issue_name").value;
-      const description = document.getElementById("issue_description").value;
-      const id = document.getElementById("project_id").value;
-      const labelInpValue = document.getElementById("labelInput").value;
-      const labels = labelInpValue ? labelInpValue.split(",") : [];
+      const title = document.getElementById('issue_name').value;
+      const description = document.getElementById('issue_description').value;
+      const id = document.getElementById('project_id').value;
+      const labelInpValue = document.getElementById('labelInput').value;
+      const labels = labelInpValue ? labelInpValue.split(',') : [];
       createissue(title, description, id, labels);
     });
   }
@@ -35,13 +51,13 @@
       const reqBody = {
         title,
         description,
-        labels
+        labels,
       };
       const options = {
-        method: "POST",
+        method: 'POST',
         headers: {
-          Accept: "application/json",
-          "Content-Type": "application/json",
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(reqBody),
       };
@@ -50,25 +66,27 @@
       const res = await response.json();
       if (res.success === true) {
         Swal.fire({
-          title: "issue created successfully!",
-          icon: "success",
+          title: 'issue created successfully!',
+          icon: 'success',
         }).then(() => {
-          location.assign(`${url}/${res.issue._id}/get-issue-details`);
-        })
+          location.assign(
+            `/api/issue-tracker/project/${projectId}/get-project-details`
+          );
+        });
       } else {
         Swal.fire({
-          title: "Error!",
+          title: 'Error!',
           text: res.error,
-          icon: "error",
+          icon: 'error',
         });
       }
     } catch (err) {
       console.log('crp ', err);
       Swal.fire({
-        title: "Error!",
+        title: 'Error!',
         text: err.message,
-        icon: "error",
-        confirmButtonText: "Ok",
+        icon: 'error',
+        confirmButtonText: 'Ok',
       });
     }
   };
